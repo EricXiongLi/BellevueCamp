@@ -1,17 +1,17 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
-const Joi = require("joi");
+
 const { campgroundSchema, reviewSchema } = require("./schemas.js");
-const Campground = require("./models/campground");
-const Review = require("./models/review");
+
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const catchAsync = require("./utils/catchAsync");
+
 const ExpressError = require("./utils/ExpressError");
-const { description } = require("commander");
 const campgrounds = require("./routes/campgrounds");
 const reviews = require("./routes/reviews");
+const session = require("express-session");
+const flash = require("connect-flash");
 
 mongoose.connect(
   "mongodb+srv://MERN:OneStep@cluster0.vc9ol.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -32,6 +32,26 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(methodOverride("_method"));
+app.use(express.static(path.join(__dirname, "public")));
+
+const sessionConfig = {
+  secret: "thisshoulebeabettersecret!",
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    httpOnly: true,
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  },
+};
+app.use(session(sessionConfig));
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  next();
+});
 
 const validateCampground = (req, res, next) => {
   const { error } = campgroundSchema.validate(req.body);

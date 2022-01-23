@@ -1,17 +1,20 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
-
-const { campgroundSchema, reviewSchema } = require("./schemas.js");
-
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 
 const ExpressError = require("./utils/ExpressError");
-const campgrounds = require("./routes/campgrounds");
-const reviews = require("./routes/reviews");
 const session = require("express-session");
 const flash = require("connect-flash");
+
+const userRoutes = require("./routes/users");
+const campgroundsRoutes = require("./routes/campgrounds");
+const reviewsRoutes = require("./routes/reviews");
+
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
+const User = require("./models/user");
 
 mongoose.connect(
   "mongodb+srv://MERN:OneStep@cluster0.vc9ol.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
@@ -47,24 +50,23 @@ const sessionConfig = {
 app.use(session(sessionConfig));
 app.use(flash());
 
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 app.use((req, res, next) => {
+  res.locals.currentUser = req.user;
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
 });
 
-const validateCampground = (req, res, next) => {
-  const { error } = campgroundSchema.validate(req.body);
-  if (error) {
-    const msg = error.details.map((el) => el.message).join(",");
-    throw new ExpressError(msg, 400);
-  } else {
-    next();
-  }
-};
-
-app.use("/campgrounds", campgrounds);
-app.use("/campgrounds/:id/reviews", reviews);
+app.use("/", userRoutes);
+app.use("/campgrounds", campgroundsRoutes);
+app.use("/campgrounds/:id/reviews", reviewsRoutes);
 
 app.get("/", (req, res) => {
   res.render("home");

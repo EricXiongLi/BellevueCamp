@@ -26,6 +26,19 @@
         <div class="valid-feedback">Looks good!</div>
       </div>
       <input type="file" name="image" id="" multiple>
+
+      <div class="mb-3">
+        <label class="form-label" for="location">Location</label>
+        <input
+          class="form-control"
+          type="text"
+          id="location"
+          name="campground[location]"
+          required
+        />
+        <div class="valid-feedback">Looks good!</div>
+      </div>
+
       <!-- <div class="mb-3">
         <label class="form-label" for="image">Image</label>
         <input
@@ -38,16 +51,7 @@
         <div class="valid-feedback">Looks good!</div>
       </div> -->
 
-      <div class="mb-3">
-        <label class="form-label" for="price">Price</label>
-        <div class="input-group">
-          <span class="input-group-text" id="basic-addon1">$</span>
-          <input type="text" class="form-control" id="price-label"
-          placeholder="0.00" aria-label="price" aria-describedby="price-label"
-          name="campground[price] />
-        </div>
-        <div class="valid-feedback">Looks good!</div>
-      </div>
+      
 
       <div class="mb-3">
         <label class="form-label" for="description">Description</label>

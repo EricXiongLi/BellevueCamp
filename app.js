@@ -1,6 +1,9 @@
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
+// if (process.env.NODE_ENV !== "production") {
+//   require("dotenv").config();
+// }
+
+require("dotenv").config();
+
 console.log(process.env.SECRET);
 console.log(process.env.API_KEY);
 
@@ -10,6 +13,7 @@ const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
 
 const ExpressError = require("./utils/ExpressError");
 const session = require("express-session");
@@ -24,9 +28,9 @@ const LocalStrategy = require("passport-local");
 const User = require("./models/user");
 const dbUrl = process.env.DB_URL;
 
-mongoose.connect(
-  "mongodb+srv://MERN:OneStep@cluster0.vc9ol.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-);
+const MongoDBStore = require("connect-mongo");
+
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -46,8 +50,21 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || "thishouldbeabettersecret";
+
+const store = new MongoDBStore({
+  mongoUrl: dbUrl,
+  secret,
+  touchAfter: 24 * 60 * 60,
+});
+
+store.on("error", function (e) {
+  console.log("Session store error", e);
+});
 const sessionConfig = {
-  secret: "thisshoulebeabettersecret!",
+  store,
+  name: "session",
+  secret,
   resave: false,
   saveUninitialized: true,
   cookie: {
